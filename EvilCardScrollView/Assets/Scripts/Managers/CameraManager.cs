@@ -2,17 +2,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CameraManager : MonoBehaviour
+public class CameraManager : Singleton<CameraManager>
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+    [SerializeField]
+    private Camera mainCamera = null;
+
+    public Camera MainCamera {
+        get
+        {
+            if (mainCamera == null)
+            {
+                //Finds main camera if it is not referenced in scene
+                //Camera.main under the hood uses GameObject.Find which is to slow for big projects
+                mainCamera = Camera.main;
+            }
+
+            return mainCamera;
+        }
     }
 }
