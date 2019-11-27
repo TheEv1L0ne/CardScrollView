@@ -2,17 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CameraExtentions : MonoBehaviour
+public static class CameraExtentions
 {
-    // Start is called before the first frame update
-    void Start()
+    public static Vector3 ScreenToWorld(this Vector3 vector3)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        Vector3 tmpPos;
+        tmpPos = vector3;
+        tmpPos.z = 10.0f;
+        return  CameraManager.Instance.MainCamera.ScreenToWorldPoint(tmpPos);
     }
 }

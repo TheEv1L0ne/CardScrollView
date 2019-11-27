@@ -28,7 +28,7 @@ public class CardScrollVIewController : EventTrigger
     // Start is called before the first frame update
     void Start()
     {
-        
+        Debug.Log(CameraManager.Instance.MainCamera);
     }
 
     // Update is called once per frame
