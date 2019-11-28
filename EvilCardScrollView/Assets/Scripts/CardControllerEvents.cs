@@ -18,7 +18,7 @@ public class CardControllerEvents : EventTrigger
     Vector2 touchCurrentPos;
     Vector2 touchEndPos;
 
-    Vector2 offset;
+    Vector2[] offset;
 
     public override void OnBeginDrag(PointerEventData eventData)
     {
@@ -33,7 +33,13 @@ public class CardControllerEvents : EventTrigger
         touchStartPos = convertedPoint;
         Debug.Log($"touchStartPos {touchStartPos}");
 
-        offset = touchStartPos - components.Parts[0].anchoredPosition;
+        offset = new Vector2[components.Parts.Length];
+
+        for (int partsIndex = 0; partsIndex < components.Parts.Length; partsIndex++)
+        {
+            offset[partsIndex] = touchStartPos - components.Parts[partsIndex].anchoredPosition;
+        }
+        
     }
 
     public override void OnDrag(PointerEventData eventData)
@@ -48,8 +54,11 @@ public class CardControllerEvents : EventTrigger
 
         touchCurrentPos = convertedPoint;
 
-
-        components.Parts[0].anchoredPosition = new Vector2(touchCurrentPos.x - offset.x, components.Parts[0].anchoredPosition.y);
+        for (int partsIndex = 0; partsIndex < components.Parts.Length; partsIndex++)
+        {
+            components.Parts[partsIndex].anchoredPosition = new Vector2(touchCurrentPos.x - offset[partsIndex].x, components.Parts[partsIndex].anchoredPosition.y);
+        }
+        
 
     }
 

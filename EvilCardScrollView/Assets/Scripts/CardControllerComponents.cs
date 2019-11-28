@@ -13,7 +13,7 @@ public class CardControllerComponents : MonoBehaviour
     public RectTransform[] Parts => parts;
 
     [SerializeField]
-    private RectTransform[] parts;
+    private RectTransform[] parts = null;
 
 
     // Start is called before the first frame update
