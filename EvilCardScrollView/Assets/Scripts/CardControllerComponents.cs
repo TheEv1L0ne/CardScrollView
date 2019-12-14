@@ -30,12 +30,6 @@ public class CardControllerComponents : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        float sizeX = Countainer.sizeDelta.x; //=> translate tis to 1 sec
 
-        // max / cur = 1 / cur_t
-
-        float cur_t = 960f / sizeX;
-
-        Debug.Log(CardAlphaCurve.Evaluate(cur_t));
     }
 }

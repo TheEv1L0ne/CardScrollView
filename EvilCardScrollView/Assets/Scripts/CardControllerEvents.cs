@@ -12,6 +12,11 @@ public class CardControllerEvents : EventTrigger
     private void Awake()
     {
         components = GetComponent<CardControllerComponents>();
+
+        rightBound = components.Countainer.sizeDelta.x / 2f;
+        lefBound = -rightBound;
+
+        Debug.Log($"lefBound {lefBound}, rightBound {rightBound}");
     }
 
     Vector2 touchStartPos;
@@ -54,12 +59,28 @@ public class CardControllerEvents : EventTrigger
 
         RectTransformUtility.ScreenPointToLocalPointInRectangle(rect, screenPoint, cam, out Vector2 convertedPoint);
 
+        MouseDragDirection(touchCurrentPos);
+
         touchCurrentPos = convertedPoint;
 
         for (int partsIndex = 0; partsIndex < components.Parts.Length; partsIndex++)
         {
             Vector2 pos = new Vector2(touchCurrentPos.x - offset[partsIndex].x, components.Parts[partsIndex].anchoredPosition.y);
             components.Parts[partsIndex].anchoredPosition = pos;
+
+            if (direction == MouseDirection.LEFT && components.Parts[partsIndex].anchoredPosition.x < -900f)
+            {
+                float posOffset = 900f - Mathf.Abs(components.Parts[partsIndex].anchoredPosition.x);
+                components.Parts[partsIndex].anchoredPosition = new Vector2(900f + posOffset, components.Parts[partsIndex].anchoredPosition.y);
+                offset[partsIndex] = touchCurrentPos - components.Parts[partsIndex].anchoredPosition;
+            }
+            else if (direction == MouseDirection.RIGHT && components.Parts[partsIndex].anchoredPosition.x > 900f)
+            {
+                float posOffset = 900f - Mathf.Abs(components.Parts[partsIndex].anchoredPosition.x);
+
+                components.Parts[partsIndex].anchoredPosition = new Vector2(-900f - posOffset, components.Parts[partsIndex].anchoredPosition.y);
+                offset[partsIndex] = touchCurrentPos - components.Parts[partsIndex].anchoredPosition;
+            }
 
             float sizeX = components.Countainer.sizeDelta.x;
             float cur_t = (pos.x + (sizeX / 2)) / sizeX;
@@ -74,7 +95,7 @@ public class CardControllerEvents : EventTrigger
             components.Parts[partsIndex].localScale = new Vector3(scalePart, scalePart, scalePart);
         }
 
-        MouseDragDirection(touchCurrentPos);
+        
 
     }
 
@@ -113,5 +134,13 @@ public class CardControllerEvents : EventTrigger
     {
         LEFT,
         RIGHT
+    }
+
+    float lefBound;
+    float rightBound;
+
+    private void SetCardPosition(RectTransform card)
+    {
+
     }
 }
