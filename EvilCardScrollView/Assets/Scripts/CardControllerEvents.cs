@@ -16,8 +16,15 @@ public class CardControllerEvents : EventTrigger
         InitCardValues();
     }
 
+    float sizeX;
+    float timeFromPosition;
+
     private void InitCardValues()
     {
+
+        sizeX = components.Countainer.sizeDelta.x;
+
+
         rightBound = components.Countainer.sizeDelta.x / 2f;
         lefBound = -rightBound;
 
@@ -40,6 +47,8 @@ public class CardControllerEvents : EventTrigger
     Vector2 touchEndPos;
 
     Vector2[] offset;
+
+
 
     public override void OnBeginDrag(PointerEventData eventData)
     {
@@ -98,21 +107,24 @@ public class CardControllerEvents : EventTrigger
                 offset[partsIndex] = touchCurrentPos - components.Parts[partsIndex].anchoredPosition;
             }
 
-            float sizeX = components.Countainer.sizeDelta.x;
-            float cur_t = (pos.x + (sizeX / 2)) / sizeX;
+            //timeFromPosition = (pos.x + (sizeX / 2)) / sizeX;
+            timeFromPosition = (pos.x / sizeX) +  0.5f;
 
             Image image = components.Parts[partsIndex].GetComponent<Image>();
 
-            Color color = image.color;
-            color.a = components.CardAlphaCurve.Evaluate(cur_t);
-            image.color = color;
+            image.color = image.AlphaFromCurve(components.CardAlphaCurve, timeFromPosition);
 
-            float scalePart = components.CardScaleCurve.Evaluate(cur_t);
+            float scalePart = components.CardScaleCurve.Evaluate(timeFromPosition);
             components.Parts[partsIndex].localScale = new Vector3(scalePart, scalePart, scalePart);
         }
     }
 
-
+    private Color ImageAlpha(Color imageColor, AnimationCurve curve, float time)
+    {
+        Color color = imageColor;
+        color.a = curve.Evaluate(time);
+        return color;
+    }
 
     public override void OnEndDrag(PointerEventData eventData)
     {
