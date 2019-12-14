@@ -26,6 +26,13 @@ public class CardControllerComponents : MonoBehaviour
     private RectTransform container;
     public RectTransform Countainer => container;
 
+    public Canvas[] CardCanvases => cardCanvases;
+    //[SerializeField]
+    //private Canvas[] cardsCanvases = null;
+    //public Canvas[] CardsCanvases => cardsCanvases;
+
+    [SerializeField]
+    private Canvas[] cardCanvases;
 
     // Start is called before the first frame update
     void Start()

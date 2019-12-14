@@ -36,10 +36,30 @@ public class CardControllerEvents : EventTrigger
         {
             float x = initX + partIndex * distanceBetweenParts;
             item.anchoredPosition = new Vector2(x, 0f);
+            
+
+            timeFromPosition = (x / sizeX) + 0.5f;
+
+            Image image = item.GetComponent<Image>();
+
+            image.color = image.AlphaFromCurve(components.CardAlphaCurve, timeFromPosition);
+
+            float scalePart = components.CardScaleCurve.Evaluate(timeFromPosition);
+            item.localScale = new Vector3(scalePart, scalePart, scalePart);
+
+            CalculateOrderInLayer(partIndex);
+
             partIndex++;
 
-
         }
+    }
+
+    private void CalculateOrderInLayer(int index)
+    {
+        float x = components.Parts[index].anchoredPosition.x;
+        int layer = Mathf.RoundToInt( x / 300f);
+        int noOfNeededLayers = components.CardCanvases.Length / 2;
+        components.CardCanvases[index].sortingOrder = noOfNeededLayers - Mathf.Abs(layer);
     }
 
     Vector2 touchStartPos;
@@ -107,6 +127,8 @@ public class CardControllerEvents : EventTrigger
                 offset[partsIndex] = touchCurrentPos - components.Parts[partsIndex].anchoredPosition;
             }
 
+            CalculateOrderInLayer(partsIndex);
+
             //timeFromPosition = (pos.x + (sizeX / 2)) / sizeX;
             timeFromPosition = (pos.x / sizeX) +  0.5f;
 
@@ -117,13 +139,6 @@ public class CardControllerEvents : EventTrigger
             float scalePart = components.CardScaleCurve.Evaluate(timeFromPosition);
             components.Parts[partsIndex].localScale = new Vector3(scalePart, scalePart, scalePart);
         }
-    }
-
-    private Color ImageAlpha(Color imageColor, AnimationCurve curve, float time)
-    {
-        Color color = imageColor;
-        color.a = curve.Evaluate(time);
-        return color;
     }
 
     public override void OnEndDrag(PointerEventData eventData)
