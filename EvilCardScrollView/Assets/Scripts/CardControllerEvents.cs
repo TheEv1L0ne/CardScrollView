@@ -9,15 +9,33 @@ public class CardControllerEvents : EventTrigger
 {
     private CardControllerComponents components;
 
+    Vector2 touchStartPos;
+    Vector2 touchCurrentPos;
+    Vector2 touchEndPos;
+
+    Vector2[] offset;
+
+    float sizeX;
+    float timeFromPosition;
+
+    Vector2 mousePrev = -Vector2.one;
+    MouseDirection direction;
+
+    enum MouseDirection
+    {
+        LEFT,
+        RIGHT
+    }
+
+    float lefBound;
+    float rightBound;
+
     private void Awake()
     {
         components = GetComponent<CardControllerComponents>();
 
         InitCardValues();
     }
-
-    float sizeX;
-    float timeFromPosition;
 
     private void InitCardValues()
     {
@@ -36,7 +54,7 @@ public class CardControllerEvents : EventTrigger
         {
             float x = initX + partIndex * distanceBetweenParts;
             item.anchoredPosition = new Vector2(x, 0f);
-            
+
 
             timeFromPosition = (x / sizeX) + 0.5f;
 
@@ -57,16 +75,12 @@ public class CardControllerEvents : EventTrigger
     private void CalculateOrderInLayer(int index)
     {
         float x = components.Parts[index].anchoredPosition.x;
-        int layer = Mathf.RoundToInt( x / 300f);
+        int layer = Mathf.RoundToInt(x / 300f);
         int noOfNeededLayers = components.CardCanvases.Length / 2;
         components.CardCanvases[index].sortingOrder = noOfNeededLayers - Mathf.Abs(layer);
     }
 
-    Vector2 touchStartPos;
-    Vector2 touchCurrentPos;
-    Vector2 touchEndPos;
 
-    Vector2[] offset;
 
 
 
@@ -74,14 +88,7 @@ public class CardControllerEvents : EventTrigger
     {
         base.OnBeginDrag(eventData);
 
-        RectTransform rect = components.RectTransform;
-        Vector2 screenPoint = Input.mousePosition;
-        Camera cam = CameraManager.Instance.MainCamera;
-
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(rect, screenPoint, cam, out Vector2 convertedPoint);
-
-        touchStartPos = convertedPoint;
-        Debug.Log($"touchStartPos {touchStartPos}");
+        touchStartPos = PositionInCanvasCoordinates();
 
         offset = new Vector2[components.Parts.Length];
 
@@ -98,15 +105,8 @@ public class CardControllerEvents : EventTrigger
     {
         base.OnDrag(eventData);
 
-        RectTransform rect = components.RectTransform;
-        Vector2 screenPoint = Input.mousePosition;
-        Camera cam = CameraManager.Instance.MainCamera;
-
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(rect, screenPoint, cam, out Vector2 convertedPoint);
-
+        touchCurrentPos = PositionInCanvasCoordinates();
         MouseDragDirection(touchCurrentPos);
-
-        touchCurrentPos = convertedPoint;
 
         for (int partsIndex = 0; partsIndex < components.Parts.Length; partsIndex++)
         {
@@ -130,7 +130,7 @@ public class CardControllerEvents : EventTrigger
             CalculateOrderInLayer(partsIndex);
 
             //timeFromPosition = (pos.x + (sizeX / 2)) / sizeX;
-            timeFromPosition = (pos.x / sizeX) +  0.5f;
+            timeFromPosition = (pos.x / sizeX) + 0.5f;
 
             Image image = components.Parts[partsIndex].GetComponent<Image>();
 
@@ -149,35 +149,34 @@ public class CardControllerEvents : EventTrigger
         mousePrev = -Vector2.one;
     }
 
-    Vector2 mousePrev = -Vector2.one;
-    MouseDirection direction;
+    private Vector2 PositionInCanvasCoordinates()
+    {
+        RectTransform rect = components.RectTransform;
+        Vector2 screenPoint = Input.mousePosition;
+        Camera cam = CameraManager.Instance.MainCamera;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(rect, screenPoint, cam, out Vector2 convertedPoint);
+
+        return convertedPoint;
+    }
+
+
     private void MouseDragDirection(Vector2 mousePos)
     {
         if (mousePrev == -Vector2.one)
             mousePrev = mousePos;
 
-        if(mousePrev.x < mousePos.x)
+        if (mousePrev.x < mousePos.x)
         {
             direction = MouseDirection.RIGHT;
             mousePrev = mousePos;
-            Debug.Log("Moving RIGHT");
         }
-        else
-            if (mousePrev.x > mousePos.x)
+        else if (mousePrev.x > mousePos.x)
         {
             direction = MouseDirection.LEFT;
             mousePrev = mousePos;
-
-            Debug.Log("Moving LEFT");
         }
     }
 
-    enum MouseDirection
-    {
-        LEFT,
-        RIGHT
-    }
 
-    float lefBound;
-    float rightBound;
 }
