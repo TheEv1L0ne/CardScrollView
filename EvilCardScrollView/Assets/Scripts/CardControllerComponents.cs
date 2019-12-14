@@ -23,7 +23,7 @@ public class CardControllerComponents : MonoBehaviour
     public AnimationCurve CardScaleCurve => cardScaleCurve;
 
     [SerializeField]
-    private RectTransform container;
+    private RectTransform container =  null;
     public RectTransform Countainer => container;
 
     public Canvas[] CardCanvases => cardCanvases;
