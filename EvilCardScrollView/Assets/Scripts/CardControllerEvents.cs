@@ -39,7 +39,9 @@ public class CardControllerEvents : EventTrigger
         {
             offset[partsIndex] = touchStartPos - components.Parts[partsIndex].anchoredPosition;
         }
-        
+
+        mousePrev = touchStartPos;
+
     }
 
     public override void OnDrag(PointerEventData eventData)
@@ -70,10 +72,9 @@ public class CardControllerEvents : EventTrigger
 
             float scalePart = components.CardScaleCurve.Evaluate(cur_t);
             components.Parts[partsIndex].localScale = new Vector3(scalePart, scalePart, scalePart);
-
-
         }
 
+        MouseDragDirection(touchCurrentPos);
 
     }
 
@@ -81,5 +82,36 @@ public class CardControllerEvents : EventTrigger
     {
         base.OnEndDrag(eventData);
         Debug.Log($"OnEndDrag");
+
+        mousePrev = -Vector2.one;
+    }
+
+    Vector2 mousePrev = -Vector2.one;
+    MouseDirection direction;
+    private void MouseDragDirection(Vector2 mousePos)
+    {
+        if (mousePrev == -Vector2.one)
+            mousePrev = mousePos;
+
+        if(mousePrev.x < mousePos.x)
+        {
+            direction = MouseDirection.RIGHT;
+            mousePrev = mousePos;
+            Debug.Log("Moving RIGHT");
+        }
+        else
+            if (mousePrev.x > mousePos.x)
+        {
+            direction = MouseDirection.LEFT;
+            mousePrev = mousePos;
+
+            Debug.Log("Moving LEFT");
+        }
+    }
+
+    enum MouseDirection
+    {
+        LEFT,
+        RIGHT
     }
 }
