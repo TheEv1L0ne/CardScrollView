@@ -13,10 +13,26 @@ public class CardControllerEvents : EventTrigger
     {
         components = GetComponent<CardControllerComponents>();
 
+        InitCardValues();
+    }
+
+    private void InitCardValues()
+    {
         rightBound = components.Countainer.sizeDelta.x / 2f;
         lefBound = -rightBound;
 
-        Debug.Log($"lefBound {lefBound}, rightBound {rightBound}");
+        float initX = -600f;
+        int partIndex = 0;
+        float distanceBetweenParts = 300f;
+
+        foreach (var item in components.Parts)
+        {
+            float x = initX + partIndex * distanceBetweenParts;
+            item.anchoredPosition = new Vector2(x, 0f);
+            partIndex++;
+
+
+        }
     }
 
     Vector2 touchStartPos;
@@ -94,10 +110,9 @@ public class CardControllerEvents : EventTrigger
             float scalePart = components.CardScaleCurve.Evaluate(cur_t);
             components.Parts[partsIndex].localScale = new Vector3(scalePart, scalePart, scalePart);
         }
-
-        
-
     }
+
+
 
     public override void OnEndDrag(PointerEventData eventData)
     {
@@ -138,9 +153,4 @@ public class CardControllerEvents : EventTrigger
 
     float lefBound;
     float rightBound;
-
-    private void SetCardPosition(RectTransform card)
-    {
-
-    }
 }
