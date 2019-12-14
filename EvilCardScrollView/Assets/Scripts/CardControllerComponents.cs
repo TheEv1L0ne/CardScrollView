@@ -16,11 +16,11 @@ public class CardControllerComponents : MonoBehaviour
 
     [Header("Curves")]
     [SerializeField]
-    private AnimationCurve cardAplphaCurve;
+    private AnimationCurve cardAplphaCurve = null;
     public AnimationCurve CardAlphaCurve => cardAplphaCurve;
 
     [SerializeField]
-    private AnimationCurve cardScaleCurve;
+    private AnimationCurve cardScaleCurve = null;
     public AnimationCurve CardScaleCurve => cardScaleCurve;
 
     [SerializeField]
@@ -33,11 +33,6 @@ public class CardControllerComponents : MonoBehaviour
     //public Canvas[] CardsCanvases => cardsCanvases;
 
     [SerializeField]
-    private Canvas[] cardCanvases;
+    private Canvas[] cardCanvases = null;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-
-    }
 }

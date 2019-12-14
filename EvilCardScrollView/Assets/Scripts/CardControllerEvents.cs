@@ -87,8 +87,9 @@ public class CardControllerEvents : EventTrigger
     public override void OnBeginDrag(PointerEventData eventData)
     {
         base.OnBeginDrag(eventData);
+        Debug.Log($"OnBeginDrag");
 
-        touchStartPos = PositionInCanvasCoordinates();
+        touchStartPos = ConvertMousePosition();
 
         offset = new Vector2[components.Parts.Length];
 
@@ -105,31 +106,73 @@ public class CardControllerEvents : EventTrigger
     {
         base.OnDrag(eventData);
 
-        touchCurrentPos = PositionInCanvasCoordinates();
-        MouseDragDirection(touchCurrentPos);
+        touchCurrentPos = ConvertMousePosition();
+        MoveCards(touchCurrentPos);
+    }
+
+    public override void OnEndDrag(PointerEventData eventData)
+    {
+        base.OnEndDrag(eventData);
+        Debug.Log($"OnEndDrag");
+
+        mousePrev = -Vector2.one;
+
+        touchEndPos = ConvertMousePosition();
+
+        SnapCards();
+    }
+
+    private void SnapCards()
+    {
+        float touchDistanceFromNearest = touchEndPos.x % 300;
+
+        Vector2 snapToPos;
+
+        if(touchDistanceFromNearest <= 150)
+        {
+            Debug.Log($"End location {touchEndPos.x - touchDistanceFromNearest}");
+            snapToPos = new Vector2(touchEndPos.x - touchDistanceFromNearest, 0f);
+        }
+        else
+        {
+            Debug.Log($"End location {touchEndPos.x + (300 - touchDistanceFromNearest)}");
+            snapToPos = new Vector2(touchEndPos.x + (300 - touchDistanceFromNearest), 0f);
+        }
+
+        Debug.Log(touchEndPos.x % 300);
+
+        StartCoroutine(ISnapCards(snapToPos, touchEndPos));
+    }
+
+    private IEnumerator ISnapCards(Vector2 snapToPOs, Vector2 snapFromPos)
+    {
+        Vector2 toPos = snapToPOs;
+        Vector2 fromPos = snapFromPos;
+
+        float step = 0;
+
+        float x = -1;
+
+        while (x != toPos.x)
+        {
+             x = Mathf.Lerp(fromPos.x, toPos.x, step);
+            step += Time.deltaTime;
+            MoveCards(new Vector2(x,0f));
+            yield return null;
+        }
+    }
+
+    private void MoveCards(Vector2 newPosition)
+    {
+        MouseDragDirection(newPosition);
 
         for (int partsIndex = 0; partsIndex < components.Parts.Length; partsIndex++)
         {
-            Vector2 pos = new Vector2(touchCurrentPos.x - offset[partsIndex].x, components.Parts[partsIndex].anchoredPosition.y);
-            components.Parts[partsIndex].anchoredPosition = pos;
+            Vector2 pos = new Vector2(newPosition.x - offset[partsIndex].x, components.Parts[partsIndex].anchoredPosition.y);
 
-            if (direction == MouseDirection.LEFT && components.Parts[partsIndex].anchoredPosition.x < -900f)
-            {
-                float posOffset = 900f - Mathf.Abs(components.Parts[partsIndex].anchoredPosition.x);
-                components.Parts[partsIndex].anchoredPosition = new Vector2(900f + posOffset, components.Parts[partsIndex].anchoredPosition.y);
-                offset[partsIndex] = touchCurrentPos - components.Parts[partsIndex].anchoredPosition;
-            }
-            else if (direction == MouseDirection.RIGHT && components.Parts[partsIndex].anchoredPosition.x > 900f)
-            {
-                float posOffset = 900f - Mathf.Abs(components.Parts[partsIndex].anchoredPosition.x);
-
-                components.Parts[partsIndex].anchoredPosition = new Vector2(-900f - posOffset, components.Parts[partsIndex].anchoredPosition.y);
-                offset[partsIndex] = touchCurrentPos - components.Parts[partsIndex].anchoredPosition;
-            }
-
+            SetCardPosition(partsIndex, pos, newPosition);
             CalculateOrderInLayer(partsIndex);
 
-            //timeFromPosition = (pos.x + (sizeX / 2)) / sizeX;
             timeFromPosition = (pos.x / sizeX) + 0.5f;
 
             Image image = components.Parts[partsIndex].GetComponent<Image>();
@@ -141,25 +184,34 @@ public class CardControllerEvents : EventTrigger
         }
     }
 
-    public override void OnEndDrag(PointerEventData eventData)
+    private void SetCardPosition(int partsIndex, Vector2 pos, Vector2 touchCurrentPos)
     {
-        base.OnEndDrag(eventData);
-        Debug.Log($"OnEndDrag");
+        Vector2 finalPos;
 
-        mousePrev = -Vector2.one;
+        if (direction == MouseDirection.LEFT && pos.x < -900f)
+        {
+            float posOffset = 900f - Mathf.Abs(pos.x);
+
+            finalPos = new Vector2(900f + posOffset, pos.y);
+            offset[partsIndex] = touchCurrentPos - finalPos;
+        }
+        else if (direction == MouseDirection.RIGHT && pos.x > 900f)
+        {
+            float posOffset = 900f - Mathf.Abs(pos.x);
+
+            finalPos = new Vector2(-900f - posOffset, pos.y);
+            offset[partsIndex] = touchCurrentPos - finalPos;
+        }
+        else
+            finalPos = pos;
+
+        components.Parts[partsIndex].anchoredPosition = finalPos;
     }
 
-    private Vector2 PositionInCanvasCoordinates()
+    private Vector2 ConvertMousePosition()
     {
-        RectTransform rect = components.RectTransform;
-        Vector2 screenPoint = Input.mousePosition;
-        Camera cam = CameraManager.Instance.MainCamera;
-
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(rect, screenPoint, cam, out Vector2 convertedPoint);
-
-        return convertedPoint;
+        return Input.mousePosition.PositionInCanvasCoordinates(components.RectTransform);
     }
-
 
     private void MouseDragDirection(Vector2 mousePos)
     {
@@ -170,6 +222,7 @@ public class CardControllerEvents : EventTrigger
         {
             direction = MouseDirection.RIGHT;
             mousePrev = mousePos;
+            Debug.Log("RIGHT");
         }
         else if (mousePrev.x > mousePos.x)
         {
