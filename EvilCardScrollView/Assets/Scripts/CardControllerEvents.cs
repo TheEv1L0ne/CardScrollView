@@ -56,9 +56,24 @@ public class CardControllerEvents : EventTrigger
 
         for (int partsIndex = 0; partsIndex < components.Parts.Length; partsIndex++)
         {
-            components.Parts[partsIndex].anchoredPosition = new Vector2(touchCurrentPos.x - offset[partsIndex].x, components.Parts[partsIndex].anchoredPosition.y);
+            Vector2 pos = new Vector2(touchCurrentPos.x - offset[partsIndex].x, components.Parts[partsIndex].anchoredPosition.y);
+            components.Parts[partsIndex].anchoredPosition = pos;
+
+            float sizeX = components.Countainer.sizeDelta.x;
+            float cur_t = (pos.x + (sizeX / 2)) / sizeX;
+
+            Image image = components.Parts[partsIndex].GetComponent<Image>();
+
+            Color color = image.color;
+            color.a = components.CardAlphaCurve.Evaluate(cur_t);
+            image.color = color;
+
+            float scalePart = components.CardScaleCurve.Evaluate(cur_t);
+            components.Parts[partsIndex].localScale = new Vector3(scalePart, scalePart, scalePart);
+
+
         }
-        
+
 
     }
 
