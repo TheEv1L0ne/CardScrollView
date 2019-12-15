@@ -80,9 +80,14 @@ public class CardControllerEvents : EventTrigger
         components.CardCanvases[index].sortingOrder = noOfNeededLayers - Mathf.Abs(layer);
     }
 
-
-
-
+    public override void OnPointerDown(PointerEventData eventData)
+    {
+        if (coroutine != null)
+        {
+            StopCoroutine(coroutine);
+            coroutine = null;
+        }
+    }
 
     public override void OnBeginDrag(PointerEventData eventData)
     {
@@ -118,6 +123,12 @@ public class CardControllerEvents : EventTrigger
         mousePrev = -Vector2.one;
 
         touchEndPos = ConvertMousePosition();
+
+        for (int partsIndex = 0; partsIndex < components.Parts.Length; partsIndex++)
+        {
+            offset[partsIndex] = touchEndPos - components.Parts[partsIndex].anchoredPosition;
+        }
+
         Debug.Log($"touchEndPos {touchEndPos}");
 
         SnapCards();
@@ -129,26 +140,44 @@ public class CardControllerEvents : EventTrigger
 
         Vector2 snapToPos;
 
-        float correction = Mathf.Abs(offset[0].x % 300);
-        if (direction == MouseDirection.LEFT)
-            correction =  -(300f - correction);
+        Debug.Log($"touchEndPos {touchEndPos}");
+        Debug.Log($"offset[0].x {offset[0].x}");
+        Debug.Log($"touchDistanceFromNearest {touchDistanceFromNearest}");
+        //Debug.Log($"offset[0].x {offset[0].x}");
 
-        if (touchDistanceFromNearest <= 150)
-        {
-            snapToPos = new Vector2(touchEndPos.x - touchDistanceFromNearest + correction, 0f);
-        }
-        else
-        {
-            snapToPos = new Vector2(touchEndPos.x + (300 - touchDistanceFromNearest) + correction, 0f);
-        }
+        float correction = offset[0].x % 300;
+        if (direction == MouseDirection.LEFT)
+            correction = - correction;
+
+        Debug.Log($"correction {correction}");
+
+        float baseX = 0;
+
+            baseX = touchEndPos.x - touchDistanceFromNearest;
+            Debug.Log($"baseX {baseX}");
+            baseX += correction;
+            Debug.Log($"baseX C {baseX}");
+
+
+        snapToPos = new Vector2(baseX, 0f);
 
         Debug.Log($"End location {snapToPos}");
 
 
+        if(coroutine != null)
+        {
+            StopCoroutine(coroutine);
+            coroutine = null;
+        }
 
-        StartCoroutine(ISnapCards(snapToPos, touchEndPos));
+        coroutine = ISnapCards(snapToPos, touchEndPos);
+
+        StartCoroutine(coroutine);
     }
 
+
+    IEnumerator coroutine = null;
+    //TODO: Check if coroutine is in progress!!!!
     private IEnumerator ISnapCards(Vector2 snapToPOs, Vector2 snapFromPos)
     {
 
@@ -171,6 +200,10 @@ public class CardControllerEvents : EventTrigger
 
         Debug.Log(toPos.x);
         Debug.Log(x);
+
+        mousePrev = -Vector2.one;
+
+        coroutine = null;
     }
 
     private void MoveCards(Vector2 newPosition, bool useOffset = true)
