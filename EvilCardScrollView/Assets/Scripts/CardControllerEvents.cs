@@ -129,13 +129,17 @@ public class CardControllerEvents : EventTrigger
 
         Vector2 snapToPos;
 
-        if(touchDistanceFromNearest <= 150)
+        float correction = Mathf.Abs(offset[0].x % 300);
+        if (direction == MouseDirection.LEFT)
+            correction =  -(300f - correction);
+
+        if (touchDistanceFromNearest <= 150)
         {
-            snapToPos = new Vector2(touchEndPos.x - touchDistanceFromNearest + Mathf.Abs(offset[0].x % 300), 0f);
+            snapToPos = new Vector2(touchEndPos.x - touchDistanceFromNearest + correction, 0f);
         }
         else
         {
-            snapToPos = new Vector2(touchEndPos.x + (300 - touchDistanceFromNearest) + Mathf.Abs(offset[0].x % 300), 0f);
+            snapToPos = new Vector2(touchEndPos.x + (300 - touchDistanceFromNearest) + correction, 0f);
         }
 
         Debug.Log($"End location {snapToPos}");
