@@ -118,6 +118,7 @@ public class CardControllerEvents : EventTrigger
         mousePrev = -Vector2.one;
 
         touchEndPos = ConvertMousePosition();
+        Debug.Log($"touchEndPos {touchEndPos}");
 
         SnapCards();
     }
@@ -130,22 +131,25 @@ public class CardControllerEvents : EventTrigger
 
         if(touchDistanceFromNearest <= 150)
         {
-            Debug.Log($"End location {touchEndPos.x - touchDistanceFromNearest}");
-            snapToPos = new Vector2(touchEndPos.x - touchDistanceFromNearest, 0f);
+            snapToPos = new Vector2(touchEndPos.x - touchDistanceFromNearest + Mathf.Abs(offset[0].x % 300), 0f);
         }
         else
         {
-            Debug.Log($"End location {touchEndPos.x + (300 - touchDistanceFromNearest)}");
-            snapToPos = new Vector2(touchEndPos.x + (300 - touchDistanceFromNearest), 0f);
+            snapToPos = new Vector2(touchEndPos.x + (300 - touchDistanceFromNearest) + Mathf.Abs(offset[0].x % 300), 0f);
         }
 
-        Debug.Log(touchEndPos.x % 300);
+        Debug.Log($"End location {snapToPos}");
+
+
 
         StartCoroutine(ISnapCards(snapToPos, touchEndPos));
     }
 
     private IEnumerator ISnapCards(Vector2 snapToPOs, Vector2 snapFromPos)
     {
+
+        Debug.Log("ISnapCards");
+
         Vector2 toPos = snapToPOs;
         Vector2 fromPos = snapFromPos;
 
@@ -160,9 +164,12 @@ public class CardControllerEvents : EventTrigger
             MoveCards(new Vector2(x,0f));
             yield return null;
         }
+
+        Debug.Log(toPos.x);
+        Debug.Log(x);
     }
 
-    private void MoveCards(Vector2 newPosition)
+    private void MoveCards(Vector2 newPosition, bool useOffset = true)
     {
         MouseDragDirection(newPosition);
 
@@ -222,7 +229,7 @@ public class CardControllerEvents : EventTrigger
         {
             direction = MouseDirection.RIGHT;
             mousePrev = mousePos;
-            Debug.Log("RIGHT");
+            //Debug.Log("RIGHT");
         }
         else if (mousePrev.x > mousePos.x)
         {
