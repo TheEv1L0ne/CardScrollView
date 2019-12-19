@@ -9,26 +9,23 @@ public class CardControllerEvents : EventTrigger
 {
     private CardControllerComponents components;
 
-    Vector2 touchStartPos;
-    Vector2 touchCurrentPos;
-    Vector2 touchEndPos;
+    private Vector2 touchStartPos;
+    private Vector2 touchCurrentPos;
 
-    Vector2[] offset;
+    private Vector2[] offset;
 
     float sizeX;
     float timeFromPosition;
 
-    Vector2 mousePrev = -Vector2.one;
-    MouseDirection direction;
+    private Vector2 mousePrev = -Vector2.one;
+    private MouseDirection direction;
 
-    enum MouseDirection
+    private enum MouseDirection
     {
         LEFT,
         RIGHT
     }
 
-    float lefBound;
-    float rightBound;
 
     private void Awake()
     {
@@ -42,10 +39,6 @@ public class CardControllerEvents : EventTrigger
 
         sizeX = components.Countainer.sizeDelta.x;
 
-
-        rightBound = components.Countainer.sizeDelta.x / 2f;
-        lefBound = -rightBound;
-
         float initX = -600f;
         int partIndex = 0;
         float distanceBetweenParts = 300f;
@@ -55,28 +48,12 @@ public class CardControllerEvents : EventTrigger
             float x = initX + partIndex * distanceBetweenParts;
             item.anchoredPosition = new Vector2(x, 0f);
 
-
-            timeFromPosition = (x / sizeX) + 0.5f;
-
-            CanvasGroup canvasGroup = item.GetComponent<CanvasGroup>();
-            canvasGroup.alpha = components.CardAlphaCurve.Evaluate(timeFromPosition);
-
-            float scalePart = components.CardScaleCurve.Evaluate(timeFromPosition);
-            item.localScale = new Vector3(scalePart, scalePart, scalePart);
-
+            CalculateAlphaAndScale(item, x);
             CalculateOrderInLayer(partIndex);
 
             partIndex++;
 
         }
-    }
-
-    private void CalculateOrderInLayer(int index)
-    {
-        float x = components.Parts[index].anchoredPosition.x;
-        int layer = Mathf.RoundToInt(x / 300f);
-        int noOfNeededLayers = components.CardCanvases.Length / 2;
-        components.CardCanvases[index].sortingOrder = noOfNeededLayers - Mathf.Abs(layer);
     }
 
     public override void OnPointerDown(PointerEventData eventData)
@@ -97,10 +74,7 @@ public class CardControllerEvents : EventTrigger
 
         offset = new Vector2[components.Parts.Length];
 
-        for (int partsIndex = 0; partsIndex < components.Parts.Length; partsIndex++)
-        {
-            offset[partsIndex] = touchStartPos - components.Parts[partsIndex].anchoredPosition;
-        }
+        UpdateOffsets(touchStartPos);
 
         mousePrev = touchStartPos;
 
@@ -120,8 +94,6 @@ public class CardControllerEvents : EventTrigger
         Debug.Log($"OnEndDrag");
 
         mousePrev = -Vector2.one;
-
-        touchEndPos = ConvertMousePosition();
 
         SnapCards();
     }
@@ -167,18 +139,16 @@ public class CardControllerEvents : EventTrigger
 
 
     IEnumerator coroutine = null;
-    //TODO: Check if coroutine is in progress!!!!
+
     private IEnumerator ISnapCards(Vector2 snapToPOs, Vector2 snapFromPos)
     {
 
         Debug.Log("ISnapCards");
-
         Vector2 toPos = snapToPOs;
         Vector2 fromPos = snapFromPos;
-
         float step = 0;
-
         float x = -1;
+
 
         while (x != toPos.x)
         {
@@ -187,9 +157,6 @@ public class CardControllerEvents : EventTrigger
             MoveCards(new Vector2(x, 0f));
             yield return null;
         }
-
-        Debug.Log(toPos.x);
-        Debug.Log(x);
 
         mousePrev = -Vector2.one;
 
@@ -206,14 +173,7 @@ public class CardControllerEvents : EventTrigger
 
             SetCardPosition(partsIndex, pos, newPosition);
             CalculateOrderInLayer(partsIndex);
-
-            timeFromPosition = (pos.x / sizeX) + 0.5f;
-
-            CanvasGroup canvasGroup = components.Parts[partsIndex].GetComponent<CanvasGroup>();
-            canvasGroup.alpha = components.CardAlphaCurve.Evaluate(timeFromPosition);
-
-            float scalePart = components.CardScaleCurve.Evaluate(timeFromPosition);
-            components.Parts[partsIndex].localScale = new Vector3(scalePart, scalePart, scalePart);
+            CalculateAlphaAndScale(components.Parts[partsIndex], components.Parts[partsIndex].anchoredPosition.x);
         }
     }
 
@@ -239,6 +199,24 @@ public class CardControllerEvents : EventTrigger
             finalPos = pos;
 
         components.Parts[partsIndex].anchoredPosition = finalPos;
+    }
+
+    private void CalculateAlphaAndScale(RectTransform rectTransform, float x)
+    {
+        timeFromPosition = (x / sizeX) + 0.5f;
+        CanvasGroup canvasGroup = rectTransform.GetComponent<CanvasGroup>();
+        canvasGroup.alpha = components.CardAlphaCurve.Evaluate(timeFromPosition);
+
+        float scalePart = components.CardScaleCurve.Evaluate(timeFromPosition);
+        rectTransform.localScale = new Vector3(scalePart, scalePart, scalePart);
+    }
+
+    private void CalculateOrderInLayer(int index)
+    {
+        float x = components.Parts[index].anchoredPosition.x;
+        int layer = Mathf.RoundToInt(x / 300f);
+        int noOfNeededLayers = components.CardCanvases.Length / 2;
+        components.CardCanvases[index].sortingOrder = noOfNeededLayers - Mathf.Abs(layer);
     }
 
     private Vector2 ConvertMousePosition()
