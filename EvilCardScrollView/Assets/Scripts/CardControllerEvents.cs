@@ -58,9 +58,8 @@ public class CardControllerEvents : EventTrigger
 
             timeFromPosition = (x / sizeX) + 0.5f;
 
-            Image image = item.GetComponent<Image>();
-
-            image.color = image.AlphaFromCurve(components.CardAlphaCurve, timeFromPosition);
+            CanvasGroup canvasGroup = item.GetComponent<CanvasGroup>();
+            canvasGroup.alpha = components.CardAlphaCurve.Evaluate(timeFromPosition);
 
             float scalePart = components.CardScaleCurve.Evaluate(timeFromPosition);
             item.localScale = new Vector3(scalePart, scalePart, scalePart);
@@ -210,9 +209,8 @@ public class CardControllerEvents : EventTrigger
 
             timeFromPosition = (pos.x / sizeX) + 0.5f;
 
-            Image image = components.Parts[partsIndex].GetComponent<Image>();
-
-            image.color = image.AlphaFromCurve(components.CardAlphaCurve, timeFromPosition);
+            CanvasGroup canvasGroup = components.Parts[partsIndex].GetComponent<CanvasGroup>();
+            canvasGroup.alpha = components.CardAlphaCurve.Evaluate(timeFromPosition);
 
             float scalePart = components.CardScaleCurve.Evaluate(timeFromPosition);
             components.Parts[partsIndex].localScale = new Vector3(scalePart, scalePart, scalePart);
