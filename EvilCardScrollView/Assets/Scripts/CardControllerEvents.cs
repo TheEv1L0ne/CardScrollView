@@ -124,55 +124,46 @@ public class CardControllerEvents : EventTrigger
 
         touchEndPos = ConvertMousePosition();
 
-        for (int partsIndex = 0; partsIndex < components.Parts.Length; partsIndex++)
-        {
-            offset[partsIndex] = touchEndPos - components.Parts[partsIndex].anchoredPosition;
-        }
-
-        Debug.Log($"touchEndPos {touchEndPos}");
-
         SnapCards();
     }
 
     private void SnapCards()
     {
-        float touchDistanceFromNearest = touchEndPos.x % 300;
+        Vector2 snapFrom = FindClosestToCenter();
+        UpdateOffsets(snapFrom);
 
-        Vector2 snapToPos;
-
-        Debug.Log($"touchEndPos {touchEndPos}");
-        Debug.Log($"offset[0].x {offset[0].x}");
-        Debug.Log($"touchDistanceFromNearest {touchDistanceFromNearest}");
-        //Debug.Log($"offset[0].x {offset[0].x}");
-
-        float correction = offset[0].x % 300;
-        if (direction == MouseDirection.LEFT)
-            correction = - correction;
-
-        Debug.Log($"correction {correction}");
-
-        float baseX = 0;
-
-            baseX = touchEndPos.x - touchDistanceFromNearest;
-            Debug.Log($"baseX {baseX}");
-            baseX += correction;
-            Debug.Log($"baseX C {baseX}");
-
-
-        snapToPos = new Vector2(baseX, 0f);
-
-        Debug.Log($"End location {snapToPos}");
-
-
-        if(coroutine != null)
+        if (coroutine != null)
         {
             StopCoroutine(coroutine);
             coroutine = null;
         }
 
-        coroutine = ISnapCards(snapToPos, touchEndPos);
+        coroutine = ISnapCards(Vector2.zero, snapFrom);
 
         StartCoroutine(coroutine);
+    }
+
+    private Vector2 FindClosestToCenter()
+    {
+        float closestX = 1000f;
+
+        foreach (var item in components.Parts)
+        {
+            if (Mathf.Abs(closestX) > Mathf.Abs(item.anchoredPosition.x))
+            {
+                closestX = item.anchoredPosition.x;
+            }
+        }
+
+        return  new Vector2(closestX,0f);
+    }
+
+    private void UpdateOffsets(Vector2 fromPoint)
+    {
+        for (int partsIndex = 0; partsIndex < components.Parts.Length; partsIndex++)
+        {
+            offset[partsIndex] = fromPoint - components.Parts[partsIndex].anchoredPosition;
+        }
     }
 
 
@@ -192,9 +183,9 @@ public class CardControllerEvents : EventTrigger
 
         while (x != toPos.x)
         {
-             x = Mathf.Lerp(fromPos.x, toPos.x, step);
+            x = Mathf.Lerp(fromPos.x, toPos.x, step);
             step += Time.deltaTime;
-            MoveCards(new Vector2(x,0f));
+            MoveCards(new Vector2(x, 0f));
             yield return null;
         }
 
